@@ -1,3 +1,4 @@
+# Debian NFS client
 class nfs::client::debian (
     $ensure = installed,
 ) {

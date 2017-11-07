@@ -27,31 +27,11 @@
 # Copyright 2014 Joseph Beard
 #
 class nfs::client (
-    $ensure = installed,
+  Array[String] $packages,
+  Enum['installed', 'absent'] $ensure = installed,
 ) {
 
-    require stdlib
-
-    anchor { 'nfs::client::begin': }
-
-    case $::osfamily {
-        'RedHat': {
-            class { 'nfs::client::rhel':
-                ensure => $ensure,
-            }
-        }
-
-        'Debian': {
-            class { 'nfs::client::debian':
-                ensure => $ensure,
-            }
-        }
-
-        default : {
-            fail("nfs::client is not currently supported on ${::operatingsystem}")
-        }
-    }
-
-    anchor { 'nfs::client::end': }
-
+  package { $packages:
+    ensure => $ensure,
+  }
 }

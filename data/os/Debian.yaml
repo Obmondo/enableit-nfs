@@ -1,0 +1,8 @@
+---
+nfs::client::packages:
+  - 'nfs-common'
+
+nfs::server::packages:
+  - 'nfs-kernel-server'
+nfs::server::service_name: 'nfs-kernel-server'
+nfs::server::config::defaults_path: '/etc/default/nfs-kernel-server'

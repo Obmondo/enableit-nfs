@@ -3,17 +3,6 @@
 # Installs the NFS server software, allowing usage of the nfs::export
 # resource type.
 #
-# === Parameters
-#
-# [*package*]
-#   Corresponds to the ensure parameter of the Package resource type.
-#
-# [*service*]
-#   Corresponds to the ensure parameter of the Service resource type.
-#
-# [*enable*]
-#   Corresponds to the enable parameter of the Service resource type.
-#
 # === Variables
 #
 # This module requires no variables.
@@ -21,57 +10,94 @@
 # === Examples
 #
 #  class { 'nfs::server':
-#    package => installed,
-#    service => running,
-#    enable  => true,
+#    ensure => true,
+#    enable => true,
 #  }
-#
+
 # === Authors
+# - Rune Juhl Jacobsen <runejuhl@enableit.dk>
 #
-# Joseph Beard <joseph@josephbeard.net>
+# Module based on work by:
+#  - Joseph Beard <joseph@josephbeard.net>
 #
 # === Copyright
 #
 # Copyright 2014 Joseph Beard
 #
 class nfs::server (
-    $package     = installed,
-    $service     = running,
-    $enable      = true,
-    $configonly  = false,
+  String $service_name,         # provided by hiera
+  Array[String] $packages,      # provided by hiera
+  Array[String] $additional_services               = [],
+  Boolean $ensure                                  = true,
+  Boolean $enable                                  = true,
+  Boolean $manage_firewall                         = true,
+  Array[String] $rpc_nfsd_args                     = [],
+  Array[String] $rpc_mountd_opts                   = [],
+  Array[String] $rpc_statd_args                    = [],
+  Array[String] $lockd_args                        = [],
+  Integer[0, default] $rpc_nfsd_count              = 8,
+  Integer[0, default] $nfsd_v4_grace               = 90,
+  Integer[0, default] $nfsd_v4_lease               = 90,
+  Eit_types::Port $nfs_port                        = 2049,
+  Eit_types::Port $rpcbind_port                    = 111,
+  Eit_types::Port $mountd_port                     = 892,
+  Eit_types::Port $statd_port                      = 662,
+  Optional[Eit_types::Port] $statd_outgoing_port   = 2020,
+  Optional[Eit_types::Port] $lockd_tcp_port        = 32803,
+  Optional[Eit_types::Port] $lockd_udp_port        = 32769,
+  Boolean $gss_use_proxy                           = true,
+  Array[String] $sm_notify_args                    = [],
+  Array[String] $rpc_idmapd_args                   = [],
+  Array[String] $rpc_gssd_args                     = [],
+  Array[String] $rpc_svcgssd_args                  = [],
+  Array[String] $rpc_blkmapd_args                  = [],
+  Optional[Stdlib::AbsolutePath] $statd_ha_callout = undef,
+  Optional[Array[String]] $listen_interfaces       = undef,
 ) {
 
-    require stdlib
+  unless ($facts['os']['family'] in ['RedHat', 'Debian']) {
+    fail('nfs::server not supported')
+  }
 
-    # TODO Refactor common packages, etc. out so that a server need not be a client as well.
-    require nfs::client
+  package { $packages:
+    ensure => ensure_present($ensure),
+    before => Class['::nfs::server::config'],
+  }
 
-    anchor { 'nfs::server::begin': }
+  class { '::nfs::server::config':
+    ensure => $ensure,
+  }
 
-    case $::osfamily {
-        'RedHat': {
-            class { 'nfs::server::rhel':
-                package    => $package,
-                service    => $service,
-                enable     => $enable,
-                configonly => $configonly,
-            }
-        }
+  service { $service_name:
+    ensure  => $ensure,
+    enable  => $enable,
+    require => [
+      Class['::nfs::server::config'],
+      Service[$additional_services],
+    ],
+  }
 
-        'Debian': {
-            class { 'nfs::server::ubuntu':
-                package    => $package,
-                service    => $service,
-                enable     => $enable,
-                configonly => $configonly,
-            }
-        }
+  if $manage_firewall {
+    $_interfaces = pick($listen_interfaces, $facts['networking']['primary'])
 
-        default : {
-            fail("nfs::server is not currently supported on ${::operatingsystem}")
-        }
+    ['tcp', 'udp'].map |$proto| {
+      firewall {
+        default:
+          action  => accept,
+          iniface => $_interfaces,
+          ;
+
+        "000 allow nfs ${proto}":
+          dport => [$mountd_port, $statd_port, $nfs_port, $rpcbind_port],
+          proto => $proto,
+          ;
+
+        "000 allow nfs lockd ${proto}":
+          dport => $lockd_tcp_port,
+          proto => $proto,
+          ;
+
+      }
     }
-
-    anchor { 'nfs::server::end': }
-
+  }
 }

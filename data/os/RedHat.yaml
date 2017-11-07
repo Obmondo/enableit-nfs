@@ -1,0 +1,10 @@
+---
+nfs::client::packages:
+  - 'nfs-utils'
+
+nfs::server::packages:
+  - 'nfs-server'
+nfs::server::service_name: 'nfs-server'
+nfs::server::config::defaults_path: '/etc/sysconfig/nfs'
+nfs::server::additional_services:
+  - 'nfs-lock'

@@ -1,0 +1,8 @@
+---
+nfs::client::packages:
+  - nfs-utils
+  - nfs-utils-lib
+
+nfs::server::service_name: nfs
+nfs::server::additional_services:
+  - nfslock

@@ -1,3 +1,4 @@
+# RHEL package NFS
 class nfs::client::rhel::packages (
     $ensure = installed,
 ) {
