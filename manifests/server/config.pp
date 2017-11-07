@@ -5,7 +5,7 @@ class nfs::server::config (
 ) {
 
   file { $defaults_path:
-    ensure  => ensure_file($ensure),
+    ensure  => if $ensure { 'file' } else { 'absent' },
     content => epp('nfs/nfs.conf.epp'),
     notify  => Service[$::nfs::server::service_name],
   }

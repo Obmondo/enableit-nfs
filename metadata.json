@@ -36,9 +36,6 @@
   ],
   "dependencies": [
     {
-      "name": "enableit/functions"
-    },
-    {
       "name": "jbeard/portmap",
       "version_requirement": ">= 0.1.11 < 0.2.0"
     },
@@ -49,9 +46,6 @@
     {
       "name": "puppetlabs/stdlib",
       "version_requirement": "4.x.x"
-    },
-    {
-      "name": "enableit/eit_types"
     }
   ]
 }

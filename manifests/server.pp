@@ -25,12 +25,12 @@
 # Copyright 2014 Joseph Beard
 #
 class nfs::server (
-  String $service_name,         # provided by hiera
-  Array[String] $packages,      # provided by hiera
-  Array[String] $additional_services               = [],
   Boolean $ensure                                  = true,
   Boolean $enable                                  = true,
   Boolean $manage_firewall                         = true,
+  String $service_name,         # provided by hiera
+  Array[String] $packages,      # provided by hiera
+  Array[String] $additional_services               = [],
   Array[String] $rpc_nfsd_args                     = [],
   Array[String] $rpc_mountd_opts                   = [],
   Array[String] $rpc_statd_args                    = [],
@@ -38,13 +38,13 @@ class nfs::server (
   Integer[0, default] $rpc_nfsd_count              = 8,
   Integer[0, default] $nfsd_v4_grace               = 90,
   Integer[0, default] $nfsd_v4_lease               = 90,
-  Eit_types::Port $nfs_port                        = 2049,
-  Eit_types::Port $rpcbind_port                    = 111,
-  Eit_types::Port $mountd_port                     = 892,
-  Eit_types::Port $statd_port                      = 662,
-  Optional[Eit_types::Port] $statd_outgoing_port   = 2020,
-  Optional[Eit_types::Port] $lockd_tcp_port        = 32803,
-  Optional[Eit_types::Port] $lockd_udp_port        = 32769,
+  Nfs::Port $nfs_port                              = 2049,
+  Nfs::Port $rpcbind_port                          = 111,
+  Nfs::Port $mountd_port                           = 892,
+  Nfs::Port $statd_port                            = 662,
+  Optional[Nfs::Port] $statd_outgoing_port         = 2020,
+  Optional[Nfs::Port] $lockd_tcp_port              = 32803,
+  Optional[Nfs::Port] $lockd_udp_port              = 32769,
   Boolean $gss_use_proxy                           = true,
   Array[String] $sm_notify_args                    = [],
   Array[String] $rpc_idmapd_args                   = [],
@@ -60,7 +60,7 @@ class nfs::server (
   }
 
   package { $packages:
-    ensure => ensure_present($ensure),
+    ensure => $ensure,
     before => Class['::nfs::server::config'],
   }
 
