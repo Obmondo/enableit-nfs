@@ -6,3 +6,5 @@ nfs::server::packages:
   - 'nfs-kernel-server'
 nfs::server::service_name: 'nfs-kernel-server'
 nfs::server::config::defaults_path: '/etc/default/nfs-kernel-server'
+
+nfs::defaults_file: '/etc/default/nfs-common'
