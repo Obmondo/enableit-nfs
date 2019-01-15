@@ -68,6 +68,13 @@ class nfs::server (
     ensure => $ensure,
   }
 
+  $additional_services.each |$_service_name| {
+    service { $_service_name:
+      ensure => $ensure,
+      enable => $enable,
+    }
+  }
+
   service { $service_name:
     ensure  => $ensure,
     enable  => $enable,
